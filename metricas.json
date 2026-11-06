@@ -1,0 +1,50 @@
+{
+  "generado": "2026-11-06T02:23:38",
+  "entrenamiento": "demanda normal",
+  "n_total": 9987,
+  "n_entrenamiento": 6990,
+  "n_prueba": 2997,
+  "modelos": {
+    "Promedio móvil (base)": {
+      "mae": 28.377,
+      "rmse": 41.034,
+      "r2": 0.3588
+    },
+    "Regresión lineal": {
+      "mae": 21.925,
+      "rmse": 31.731,
+      "r2": 0.6166
+    },
+    "XGBoost": {
+      "mae": 10.061,
+      "rmse": 15.527,
+      "r2": 0.9082
+    },
+    "Random Forest": {
+      "mae": 10.686,
+      "rmse": 16.981,
+      "r2": 0.8902
+    }
+  },
+  "mejora_vs_base_pct": 62.34,
+  "importancias": {
+    "pacientes_en_cola": 0.7582,
+    "especialidad": 0.0991,
+    "consultorios_activos": 0.0549,
+    "hora_llegada": 0.0365,
+    "duracion_prom_5": 0.0345,
+    "dia_semana": 0.0168
+  },
+  "metas": {
+    "mae": 10.0,
+    "rmse": 15.0,
+    "r2": 0.7,
+    "mejora_pct": 20.0
+  },
+  "cumple": {
+    "mae": false,
+    "rmse": false,
+    "r2": true,
+    "mejora": true
+  }
+}
