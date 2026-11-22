@@ -4,6 +4,7 @@ Scripts de medición para el procedimiento experimental (usar en la rama pruebas
     python pruebas.py robustez     [--dias 30] [--seed 7]
     python pruebas.py rendimiento  [--repeticiones 30]
     python pruebas.py disponibilidad --url https://TU-APP.streamlit.app [--minutos 30] [--intervalo 60]
+    python pruebas.py replicas     [--dias 20] [--n 20]
 
 La conexión a MongoDB Atlas se toma de .streamlit/secrets.toml o de la variable MONGODB_URI.
 Si no hay configuración, rendimiento y disponibilidad se miden solo en modo local.
@@ -105,10 +106,24 @@ def disponibilidad(a):
             break
         time.sleep(a.intervalo)
     df = pd.DataFrame(registros)
+    if bd is not None:
+        df["global"] = df["app"] & df["mongodb"]
+        print(f"Disponibilidad global (app + BD): {df['global'].mean() * 100:.1f} %")
     print(f"\nDisponibilidad de la aplicación: {df['app'].mean() * 100:.1f} %")
     if bd is not None:
         print(f"Disponibilidad de MongoDB Atlas: {df['mongodb'].mean() * 100:.1f} %")
     df.to_csv("resultados_disponibilidad.csv", index=False)
+
+
+def replicas(a):
+    modelo = joblib.load(RUTA_MODELO)
+    maes = []
+    for s in range(1, a.n + 1):
+        d = generar_atenciones(dias=a.dias, factor_demanda=1.0, seed=s)
+        pred = np.clip(modelo.predict(d[COLUMNAS_MODELO]), 0, None)
+        maes.append(float(np.mean(np.abs(d[OBJETIVO] - pred))))
+    print(f"E1 con {a.n} semillas: min {min(maes):.2f} | max {max(maes):.2f} | "
+          f"media {np.mean(maes):.2f} | sd {np.std(maes):.2f}")
 
 
 if __name__ == "__main__":
@@ -118,5 +133,6 @@ if __name__ == "__main__":
     p = sp.add_parser("rendimiento"); p.add_argument("--repeticiones", type=int, default=30)
     d = sp.add_parser("disponibilidad"); d.add_argument("--url", required=True)
     d.add_argument("--minutos", type=int, default=30); d.add_argument("--intervalo", type=int, default=60)
+    rp = sp.add_parser("replicas"); rp.add_argument("--dias", type=int, default=20); rp.add_argument("--n", type=int, default=20)
     a = ap.parse_args()
-    {"robustez": robustez, "rendimiento": rendimiento, "disponibilidad": disponibilidad}[a.cmd](a)
+    {"robustez": robustez, "rendimiento": rendimiento, "disponibilidad": disponibilidad, "replicas": replicas}[a.cmd](a)
