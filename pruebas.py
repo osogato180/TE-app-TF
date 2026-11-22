@@ -99,12 +99,16 @@ def disponibilidad(a):
     while True:
         ahora = datetime.now().isoformat(timespec="seconds")
         try:
-            with opener.open(a.url, timeout=20) as r:
+            req = urllib.request.Request(a.url, headers={"User-Agent": "Mozilla/5.0"})
+            with opener.open(req, timeout=20) as r:
                 app_ok = r.status in (200, 302, 303)
         except urllib.error.HTTPError as exc:
             app_ok = exc.code in (200, 302, 303)
-        except Exception:
+            if not app_ok:
+                print(f"[AVISO app] HTTPError {exc.code}: {exc.reason}")
+        except Exception as exc:
             app_ok = False
+            print(f"[AVISO app] Error: {exc}")
         try:
             bd_ok = bool(bd is not None and bd.client.admin.command("ping").get("ok") == 1)
         except Exception:
