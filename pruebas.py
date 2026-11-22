@@ -89,11 +89,20 @@ def rendimiento(a):
 def disponibilidad(a):
     bd = _bd()
     registros, fin = [], time.time() + a.minutos * 60
+
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+
+    opener = urllib.request.build_opener(NoRedirect)
+
     while True:
         ahora = datetime.now().isoformat(timespec="seconds")
         try:
-            with urllib.request.urlopen(a.url, timeout=20) as r:
-                app_ok = r.status == 200
+            with opener.open(a.url, timeout=20) as r:
+                app_ok = r.status in (200, 302, 303)
+        except urllib.error.HTTPError as exc:
+            app_ok = exc.code in (200, 302, 303)
         except Exception:
             app_ok = False
         try:
